@@ -4,6 +4,7 @@ from sqlalchemy import Column, Integer, String, Float
 import os
 from flask_marshmallow import Marshmallow
 
+
 app = Flask(__name__)
 basedir = os.path.abspath(os.path.dirname(__file__))
 app.config["SQLALCHEMY_DATABASE_URI"] = "sqlite:///" + os.path.join(basedir, "planets.db")
@@ -28,11 +29,11 @@ def db_drop():
 @app.cli.command("db_seed")
 def db_seed():
     mercury = Planet(planet_name = "Mercury",
-    planet_type = "Class D",
-    home_star = "sol",
-    mass = 2.358e23,
-    radius = 1516,
-    distance = 3598e6)
+                     planet_type = "Class D",
+                     home_star = "sol",
+                     mass = 2.358e23,
+                     radius = 1516,
+                     distance = 3598e6)
 
     venus = Planet(planet_name = "Venus",
                    planet_type = "Class K",
@@ -61,14 +62,15 @@ def db_seed():
     db.session.commit()
     print("Database seeded!")
 
+
 @app.route("/")
 def hello_world():
-    return jsonify(message = 'Hello World!')
+    return 'Hello World!'
 
 
 @app.route("/super_simple")
 def super_simple():
-    return jsonify(message = "hello from the app api training")
+    return jsonify(message = "hello from the app api training"), 200
 
 
 @app.route("/not_found")
@@ -98,6 +100,24 @@ def url_variables(name:str, age:int):
 def planets():
     planets_list = Planet.query.all()
     result = planets_schema.dump(planets_list)
+    return jsonify(result)
+
+
+@app.route("/register", methods = ["POST"])
+def register():
+    email = request.form["email"]
+    test = User.query.filter_by(email=email).first()
+    if test:
+        return jsonify(message = "That email already exists."), 409
+    else:
+        first_name = request.form["first_nam"]
+        last_name = request.form["last_name"]
+        password = request.form["password"]
+        user = User(first_name=first_name, last_name=last_name, email=email, password=password)
+        db.session.add(user)
+        db.session.commit()
+        return jsonify(message="User created succesfully."), 201
+
 
 
 #database model 
